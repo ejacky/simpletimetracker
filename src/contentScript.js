@@ -1,43 +1,37 @@
 'use strict';
 
-// Content script file will run in the context of web page.
-// With content script you can manipulate the web pages using
-// Document Object Model (DOM).
-// You can also pass information to the parent extension.
+// content.js
+let sidebarVisible = false;
+const sidebar = document.createElement('div');
 
-// We execute this script by making an entry in manifest.json file
-// under `content_scripts` property
+sidebar.style.position = 'fixed';
+sidebar.style.top = '0';
+sidebar.style.right = '0';
+sidebar.style.width = '300px';
+sidebar.style.height = '100%';
+sidebar.style.backgroundColor = 'white';
+sidebar.style.boxShadow = '-2px 0 5px rgba(0,0,0,0.5)';
+sidebar.style.zIndex = '1000';
+sidebar.style.display = 'none'; // 初始隐藏
 
-// For more information on Content Scripts,
-// See https://developer.chrome.com/extensions/content_scripts
+// 添加内容到侧边栏
+sidebar.innerHTML = `
+    <h1>侧边栏</h1>
+    <p>这里是固定在右侧的内容。</p>
+`;
 
-// Log `title` of current active web page
-const pageTitle = document.head.getElementsByTagName('title')[0].innerHTML;
-console.log(
-  `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
-);
+document.body.appendChild(sidebar);
 
-// Communicate with background file by sending a message
-chrome.runtime.sendMessage(
-  {
-    type: 'GREETINGS',
-    payload: {
-      message: 'Hello, my name is Con. I am from ContentScript.',
-    },
-  },
-  response => {
-    console.log(response.message);
-  }
-);
-
-// Listen for message
+// 添加消息监听器
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'COUNT') {
-    console.log(`Current count is ${request.payload.count}`);
+  console.log('Message received:', request);
+  if (request.action === 'toggleSidebar') {
+    sidebarVisible = !sidebarVisible;
+    sidebar.style.display = sidebarVisible ? 'block' : 'none';
+    sendResponse({ success: true });
   }
-
-  // Send an empty response
-  // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
-  sendResponse({});
-  return true;
+  return true; // 保持消息通道开放，用于异步响应
 });
+
+// 添加加载确认
+console.log('Content script loaded');

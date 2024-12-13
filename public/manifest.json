@@ -14,11 +14,12 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Simpletimetracker",
-    "default_popup": "popup.html"
+    "default_title": "Simpletimetracker"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "tabs",
+    "system.display"
   ],
   "content_scripts": [
     {

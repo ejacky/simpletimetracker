@@ -1,21 +1,22 @@
 'use strict';
 
-// With background scripts you can communicate with popup
-// and contentScript files.
-// For more information on background script,
-// See https://developer.chrome.com/extensions/background_pages
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GREETINGS') {
-    const message = `Hi ${
-      sender.tab ? 'Con' : 'Pop'
-    }, my name is Bac. I am from Background. It's great to hear from you.`;
-
-    // Log message coming from the `request` parameter
-    console.log(request.payload.message);
-    // Send a response message
-    sendResponse({
-      message,
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    console.log('click action');
+    // 检查标签页是否可以注入脚本
+    if (!tab.url.startsWith('chrome://') && !tab.url.startsWith('edge://')) {
+      const response = await chrome.tabs.sendMessage(tab.id, {action: 'toggleSidebar'});
+      console.log('Response:', response);
+    }
+  } catch (error) {
+    console.log('Error:', error);
+    // 如果消息发送失败，可以尝试重新注入content script
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content.js']
     });
+    // 重试发送消息
+    await chrome.tabs.sendMessage(tab.id, {action: 'toggleSidebar'});
   }
 });
+
